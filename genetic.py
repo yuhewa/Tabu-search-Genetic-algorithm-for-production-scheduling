@@ -45,17 +45,43 @@ class gene_search():
 
 
     def crossover(self):
-        for j in range(0,self.offspring_size,2):
+        for i in range(0, self.offspring_size, 2):
             # decide which two genomes crossover
             genome_num =  np.random.choice(self.genome_size, 2, replace=False) 
-            crossover_site = np.random.randint(low=1, high=19, size=1)[0]
+            genome_1 = genome_num[0]
+            genome_2 = genome_num[1]
 
-            # initialize offspring by parent and each parent have two offspring
-            self.new_job_sequence[j], self.new_job_sequence[j+1] = self.job_sequence[genome_num[0]], self.job_sequence[genome_num[1]]
+            self.new_job_sequence[i], self.new_job_sequence[i+1] = self.job_sequence[genome_1], self.job_sequence[genome_2]
+            
 
-            # do swap
-            for i in range(crossover_site, 20):
-                self.new_job_sequence[j][i], self.new_job_sequence[j+1][i]= self.new_job_sequence[j+1][i], self.new_job_sequence[j][i]  
+            interested_job = np.arange(1,10+1,dtype=np.int)
+            
+            interested_job_order_1 = []
+            interested_job_order_2 = []
+
+            mpa_order_1 = {}
+            mpa_order_2 = {}
+            for j in range(20):
+                if self.job_sequence[genome_1][j] in interested_job:
+                    interested_job_order_1.append(self.job_sequence[genome_1][j])
+                if self.job_sequence[genome_2][j] in interested_job:
+                    interested_job_order_2.append(self.job_sequence[genome_2][j])
+            
+            for j in range(10):
+                mpa_order_1[interested_job_order_1[j]] = interested_job_order_2[j]
+                mpa_order_2[interested_job_order_2[j]] = interested_job_order_1[j]
+
+            for j in range(20):    
+                index = self.new_job_sequence[i][j]   
+                if index in interested_job:
+                    self.new_job_sequence[i][j] = mpa_order_1[index]
+            
+            for j in range(20):    
+                index = self.new_job_sequence[i+1][j]   
+                if index in interested_job:
+                    self.new_job_sequence[i+1][j] = mpa_order_2[index]
+
+
             
     def mutation(self, probability):
         x = random.random()
@@ -105,11 +131,6 @@ class gene_search():
 
 
 
-    def search(self):
-        pass
-        
-
-
 # given data
 p_time={1:10,2:10,3:13,4:4,5:9,6:4,7:8,8:15,9:7,10:1,11:9,12:3,13:15,14:9,15:11,16:6,17:5,18:14,19:18,20:3}
 d_time={1:50,2:38,3:49,4:12,5:20,6:105,7:73,8:45,9:6,10:64,11:15,12:6,13:92,14:43,15:78,16:21,17:15,18:50,19:150,20:99}
@@ -123,14 +144,16 @@ job = range(1,21,1)
 
 
 # setting the hyperparameter
-iteration = 100
-genome_size = 10
+iteration = 300
+genome_size = 35
 offspring_size = genome_size*2
 mutation_probability = 0.01
 
 
 gene = gene_search(p_time, d_time, weights, job, genome_size, offspring_size)
 
+
+gene.crossover()
 
 print ("current minimal tardy: {}".format(gene.cal_tardy(offspring=False).min() ))
 
